@@ -25,7 +25,7 @@ pipeline {
   stage('Publish image to Docker Hub') {
           
             steps {
-        docker.withRegistry([ credentialsId: "dockerHUB", url: "" ]) {
+        docker.withRegistry('https://registry.hub.docker.com', 'dockerHUB') {
           sh  'docker push faraabs/webapp:latest'
         //  sh  'docker push nikhilnidhi/samplewebapp:$BUILD_NUMBER' 
         }
