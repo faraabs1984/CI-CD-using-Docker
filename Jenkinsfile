@@ -1,46 +1,40 @@
 pipeline {
-    agent any
-	
- stages {
-      stage('checkout') {
-           steps {
-             
-                git branch: 'master', url: 'https://github.com/faraabs1984/CI-CD-using-Docker.git'
-             
-          }
-        }
-	
-        
-
-  stage('Docker Build and Tag') {
-           steps {
-              
-                sh 'docker build -t samplewebapp:latest .' 
-                sh 'docker tag samplewebapp faraabs/samplewebapp:latest'
-                //sh 'docker tag samplewebapp nikhilnidhi/samplewebapp:$BUILD_NUMBER'
-               
-          }
-        }
-     
-  stage('Publish image to Docker Hub') {
-          
+  environment {
+    imagename = ""
+    registryCredential = 'docker_hub_login'
+    dockerImage = ''
+  }
+  agent any
+    stages {
+      
+      
+    stage ('GitCheckout') {
             steps {
-        withDockerRegistry([ credentialsId: "dokcerHUB", url: "" ]) {
-          sh  'docker push faraabs/samplewebapp:latest'
-        //  sh  'docker push nikhilnidhi/samplewebapp:$BUILD_NUMBER' 
-        }
-                  
-          }
-        }
-     
-      stage('Run Docker container on Jenkins Agent') {
-             
-            steps 
-			{
-                sh "docker run -d -p 8003:8080 faraabs/samplewebapp:v1"
- 
+            echo 'Checking Git repository'
+            checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'github_key', url: 'https://github.com/faraabs1984/CI-CD-using-Docker.git']]])
             }
         }
-     }
+    stage ('BuildImage'){
+            steps{
+                echo 'Building Docker Image'
+                sh '''docker build -t webapp .
+                      docker tag webapp faraabs/webapp && docker rmi webapp'''
+            }
+        }
+    stage('Deploy Image') {
+      steps{
+        script {
+          withCredentials([usernameColonPassword(credentialsId: 'docker_hub_login', variable: 'docker')]) {
+            sh '''docker push faraabs/webapp:latest && docker rmi faraabs/webapp:latest 
+                   '''
+            } 
+         }
+      }
+   }
+    stage('RunConatiner'){
+        steps{
+                sh 'docker run --rm -d -p 8000:8080 faraabs/webapp:latest'
+            }
+    }
+  }
 }
-    
