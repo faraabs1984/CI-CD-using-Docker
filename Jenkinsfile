@@ -33,7 +33,8 @@ pipeline {
    }
     stage('Deploy Conatiner'){
         steps{
-                sh 'docker run --rm -d -p 8000:8080 faraabs/webapp:latest'
+                sh 'docker stop mywebapp'
+                sh 'docker run --rm -d --name mywebapp -p 8000:8080 faraabs/webapp:latest'
             }
     }
   }
