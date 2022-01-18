@@ -21,7 +21,7 @@ pipeline {
                       docker tag webapp faraabs/webapp && docker rmi webapp'''
             }
         }
-    stage('Deploy Image') {
+    stage('Push Image') {
       steps{
         script {
           withCredentials([usernameColonPassword(credentialsId: 'docker_hub_login', variable: 'docker')]) {
@@ -31,7 +31,7 @@ pipeline {
          }
       }
    }
-    stage('RunConatiner'){
+    stage('Deploy Conatiner'){
         steps{
                 sh 'docker run --rm -d -p 8000:8080 faraabs/webapp:latest'
             }
